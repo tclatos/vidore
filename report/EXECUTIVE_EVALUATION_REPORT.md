@@ -104,19 +104,58 @@ Questions reflect realistic operational inquiries spanning 7 reasoning categorie
 | **Total Decision Model Calls** | **1,179** | Average ~11.2 decision calls per question |
 | **Total Decision Model Cost** | **$0.1595** | **~$0.0015 per question** |
 
-### 4.2 Comparison with Published State-of-the-Art Baselines
+### 4.2 Understanding the Benchmark Metrics: Retrieval (MTEB) vs. End-to-End QA
 
-In the official ViDoRe v3 benchmark study (*Macé et al., arXiv:2601.08620*), leading retrieval systems evaluated on the raw page corpora report the following retrieval performance:
+To interpret these results rigorously, it is essential to distinguish between the **retrieval-only metrics published by the benchmark authors** and the **end-to-end question answering evaluation** conducted here.
 
-| Retrieval System / Architecture | Industrial Recall@1 | Industrial nDCG@5 | End-to-End RAG Accuracy |
+#### Published ViDoRe v3 Retrieval Baselines (MTEB NDCG@10)
+In the official ViDoRe v3 benchmark publication (*Macé et al., ILLUIN Technology & NVIDIA, arXiv:2601.08620*), models are evaluated using the [MTEB](https://github.com/embeddings-benchmark/mteb) framework on **page-level retrieval ranking**: whether the retriever places human-annotated relevant PDF pages in its top 10 results.
+
+On the `Industrial` split (USAF Technical Orders), the published retrieval performance across state-of-the-art vision-language retrievers is:
+
+| Model / Architecture | Model Size | Modality | Industrial NDCG@10 | Notes from ViDoRe v3 Publication |
+|---|:---:|:---:|:---:|---|
+| **`nemo-colembed-3b`** | 3B | Multimodal (ColPali-style) | **57.0%** | SOTA on English datasets |
+| **`nemo-colembed-1b`** | 1B | Multimodal (ColPali-style) | **56.1%** | Lightweight late-interaction |
+| **`jinav4`** | ~4B | Multimodal | **55.9%** | Strong cross-domain baseline |
+| **`colnomic-7b`** | 7B | Multimodal (ColPali-style) | **54.2%** | High CS performance, lower Industrial |
+| **`colqwen2`** | ~7B | Multimodal (Qwen2-VL) | **49.8%** | Multi-vector visual retriever |
+| **`colqwen2.5`** | ~7B | Multimodal (Qwen2.5-VL) | **49.4%** | Multi-vector visual retriever |
+| **`nomic-7b` (dense)** | 7B | Dense Text+Vision | **48.5%** | Single-vector dense embedding |
+| **`colpali-v1.3`** | ~3B | Multimodal (PaliGemma) | **47.0%** | Original ColPali architecture |
+| **`colsmol256`** | ~256M | Multimodal | **38.5%** | Compact edge model |
+
+*Benchmark Difficulty Context*: The ViDoRe v3 authors explicitly note that **Industrial is one of the most challenging subsets** in the entire benchmark. On complex query types within Industrial, retrieval performance drops sharply:
+- Open-ended synthesis queries: **20.9% NDCG@10**
+- Enumerative checklist queries: **34.7% NDCG@10**
+- Multi-hop queries: **44.6% NDCG@10**
+
+#### Our Evaluation: End-to-End Task Completion (RAG Question Answering)
+While ViDoRe v3's MTEB benchmark tests whether a retriever can find the right page image, enterprise operational workflows require **end-to-end task execution**: identifying the governing technical order, extracting the operative clause, verifying safety tolerances, and delivering an authoritative procedural answer.
+
+Our evaluation uses `DeepSeek-V4-Pro-0813` as a strict domain judge under the standardized **strict-but-fair equivalence rubric**:
+- **Strict Accuracy (Deterministic Exact Match)**: **61.9% (65/105)**  
+  The agent must accurately extract and state *all* critical technical components, aircraft designations, exact safety separation distances (e.g. 50 ft GPU stand-off, 25 ft wing-vent clearance), and mandatory procedural steps.
+- **Weighted Accuracy (`correct + 0.5 * partial`)**: **77.1% (81/105)**  
+  Accounts for partial answers (30.5%) where the agent retrieved the exact section and stated the core rule, but omitted a secondary administrative caveat (e.g. spotter positioning or engine cool-down times).
+- **Outright Incorrect Rate**: Only **7.6% (8/105)**  
+  Minimal rate of contradicted facts or hallucinated regulations.
+- **Groundedness Rate**: **92.9% (97/105)**  
+  Answers are directly substantiated by cited manual sections, avoiding generative drift.
+
+#### Apples-to-Apples Architecture Comparison (Baseline Deep Agent vs. DecisionRAG)
+To directly evaluate the impact of **DecisionRAG** on end-to-end generation, we compared both architectures on identical multi-manual questions under the same LLM (`glm_5.3_flash@openrouter`) and grader (`DeepSeek-V4-Pro-0813`):
+
+| Evaluation Dimension | Baseline Deep Agent (`default`) | DecisionRAG Navigator (`decision_fast`) | Delta / Advantage |
 |---|:---:|:---:|:---:|
-| **BM25 (Text-only baseline)** | 22.4% | 34.1% | ~32.0% |
-| **BGE-M3 (Dense + Lexical)** | 35.8% | 46.2% | ~44.5% |
-| **ColPali (Multi-vector VLM)** | 48.7% | 58.3% | ~53.0% |
-| **ColQwen2 (Multi-vector VLM)** | 51.2% | 61.4% | ~56.2% |
-| **Document Graph + DecisionRAG (Ours)** | **—** | **—** | **77.1% (Weighted) / 61.9% (Strict)** |
+| **Navigation Mechanism** | LLM tool calls (`list_docs`, `toc`, `search`) | System-1 Decision Model (`navigate_folder`) | Zero LLM navigation loops |
+| **Strict Accuracy (Subset)** | 61.5% (8/13) | **92.3% (12/13)** | **+30.8% strict accuracy gain** |
+| **Weighted Accuracy (Subset)** | 73.1% | **96.2%** | **+23.1% weighted gain** |
+| **Retrieval / Lookup Errors** | 5 | **1** | **-80% retrieval errors** |
+| **Avg Tool Calls / Turn** | 8.77 | **6.08** | **-30.7% fewer tool calls** |
+| **Navigation Cost** | ~$0.027 (LLM tokens) | **$0.0015 (System-1 calls)** | **~18x cheaper navigation** |
 
-*Takeaway*: While state-of-the-art vision-language retrievers achieve ~51–56% accuracy on unstructured page retrieval, structuring technical manuals into a **hierarchical Document Graph** and navigating via a **System-1 Decision Model** delivers a **+20.9 percentage point improvement** in end-to-end task completion.
+*Takeaway*: Rather than forcing a generative LLM to wander through 10 manuals and 818 sections via trial-and-error tool calls (which caused 5 retrieval failures in the baseline), DecisionRAG evaluates candidate documents and sections jointly via System-1 probabilistic scoring. This eliminates 80% of retrieval failures, increases strict accuracy by +30.8 percentage points, and reduces navigation costs by ~18x.
 
 ---
 

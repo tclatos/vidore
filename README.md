@@ -30,7 +30,9 @@ Evaluated across 13 diverse questions spanning all 10 ingested manuals, graded b
 
 ## Comprehensive Evaluation Results (105 Questions Across 10 Technical Manuals)
 
-Evaluated across all 105 expert-annotated questions mapped to the 10 ingested manuals in the Ladybug Document Graph, graded by `DeepSeek-V4-Pro-0813`:
+Evaluated across all 105 expert-annotated questions mapped to the 10 ingested manuals in the Ladybug Document Graph, graded by `DeepSeek-V4-Pro-0813`.
+
+> **Note on Benchmark Paradigms**: Official ViDoRe v3 MTEB leaderboard metrics measure **page-level retrieval ranking (NDCG@10)** on raw page images (e.g. SOTA `nemo-colembed-3b` achieves **57.0% NDCG@10**, `colqwen2` achieves **49.8% NDCG@10** on Industrial). The evaluation below measures **end-to-end task completion (RAG question answering)** on deterministic procedural steps, safety distances, and technical figures:
 
 | Evaluation Metric | Measured Result (`decision_fast`) | Benchmark Context |
 |---|:---:|---|

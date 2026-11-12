@@ -18,7 +18,7 @@ nlp:
 
 # Embedded graph engine (Ladybug) settings
 ladybug:
-  buffer_pool_size: ${oc.env:LADYBUG_BUFFER_POOL_SIZE,6GB}
+  buffer_pool_size: ${oc.env:LADYBUG_BUFFER_POOL_SIZE,8GB}
 
 :merge:
   - "**/*.yaml"

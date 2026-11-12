@@ -55,3 +55,6 @@ bench-run:
 
 bench-grade:
     uv run cli bench run --step grade
+
+bench-report:
+    uv run cli bench report

@@ -13,11 +13,11 @@ docgraph_profiles:
       saved_markdown_dir: ~/OneDrive/prj/vidore/markdown
 
     ladybug:
-      buffer_pool_size: ${oc.env:LADYBUG_BUFFER_POOL_SIZE,6GB}
+      buffer_pool_size: ${oc.env:LADYBUG_BUFFER_POOL_SIZE,8GB}
 
     llms:
-      summary: deepseek-v4-flash-0731(none)@openrouter  # Structure discovery & section descriptions (reasoning disabled)
-      image: gemini-2.5-flash@openrouter                # VLM for uncaptioned image descriptions and query_image
+      summary: deepseek-v4.1-flash-1017(none)@openrouter  # Structure discovery & section descriptions (reasoning disabled)
+      image: gemini-3.5-flash-lite@openrouter                # VLM for uncaptioned image descriptions and query_image
 
     images:
       enabled: true                                     # Enable multimodal visual capabilities

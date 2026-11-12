@@ -20,7 +20,7 @@ bench_profiles:
       limit: null
 
     runner:
-      concurrency: 2
+      concurrency: 1
       folder_id: null
       monitoring: null
 
@@ -41,7 +41,7 @@ bench_profiles:
       limit: null
 
     runner:
-      concurrency: 2
+      concurrency: 1
       folder_id: null
       monitoring: null
 

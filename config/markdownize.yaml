@@ -13,7 +13,10 @@ markdownize_converters:
       images_dir: data/markdown_multi/images
       table_format: html
       describe_uncaptioned_images: true
-      vlm_model: gemini-2.5-flash@openrouter
+      vlm_model: gemini-3.5-flash-lite@openrouter
+  markitdown:
+    class: genai_tk.extra.markdownize.markitdown_converter.MarkItDownConverter
+    params: {}
 
 markdownize_profiles:
   best:

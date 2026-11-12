@@ -109,18 +109,19 @@ agents:
     tools:
       - factory: genai_graph.agent.decision_navigation.create_decision_navigation_tools
         decision_model: accurate
-        beam_width: 3
+        beam_width: 4
         top_r_sections: 8
         min_confidence: 0.3
         l1_min_confidence: 0.15
         l2_min_confidence: 0.4
         descent_min_confidence: 0.2
         max_depth: 2
-        candidate_cap: 32
+        candidate_cap: 48
         prefilter: hybrid
         pack_char_budget: 10000
         l2_workers: 1
-        trace_top_k: 8
+        trace_top_k: 12
+        domain_context_file: ${paths.project}/skills/custom/vidore-industrial-qa/decision-routing.md
       - genai_tk.agents.tools.langchain.search_tools_factory.create_search_tool
     skill_directories:
       - ${paths.project}/skills/custom
@@ -151,4 +152,4 @@ agents:
     backend:
       type: none
     enable_planning: false
-    recursion_limit: 64
+    recursion_limit: 160

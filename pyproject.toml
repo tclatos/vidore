@@ -1,0 +1,82 @@
+[project]
+name = "vidore"
+version = "0.1.0"
+description = "Benchmarking Document Graph and DecisionRAG on ViDoRe v3 Industrial"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "baml-py>=0.223.0",
+    "genai-tk[harnessing]",
+    "genai_graph",
+    "prefect-yaml",
+    "datasets>=2.20",
+    "pandas>=2.2",
+    "pyarrow>=15.0",
+    "pillow>=10.0",
+    "httpx>=0.27",
+    "huggingface-hub>=0.24",
+    "pathspec>=0.12",
+]
+
+[tool.uv.sources]
+genai-tk = { path = "../genai-tk", editable = true }
+genai_graph = { path = "../genai-graph", editable = true }
+prefect-yaml = { path = "../prefect-yaml", editable = true }
+
+[tool.uv]
+package = true
+default-groups = ["dev"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[project.optional-dependencies]
+harnessing = ["genai-tk[harnessing]"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["vidore"]
+
+[tool.ruff]
+builtins = ["ic", "debug"]
+line-length = 120
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+    "E", # Pycodestyle errors
+    "F", # Pyflakes errors
+    "I", # isort rules
+    "W", # Pycodestyle warnings
+    "B", # Bugbear
+    "C", # Better comprehensions
+    "PIE",
+    "PD", # Pandas
+    "FURB",
+]
+ignore = [
+    "E501",   # Line too long (we use 120 chars)
+    "W291",   # Trailing whitespace
+    "B006",   # Mutable default args
+    "C901",   # Complex function
+    "COM812", # Trailing comma conflicts
+    "ISC001", # Implicit string concat conflicts
+]
+
+[tool.ruff.lint.pycodestyle]
+ignore-overlong-task-comments = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

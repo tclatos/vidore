@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+
+# ViDoRe benchmark data & generated artifacts
+data/
+
+# Secrets
+.env
+.env.*
+
+# Editors and tooling
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.DS_Store
+*.code-workspace
+.agents.input.history
+.deer-flow/

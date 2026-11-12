@@ -1,0 +1,154 @@
+# Agent Profiles for ViDoRe v3 Industrial
+
+agents:
+  # Baseline Deep Agent that navigates Document Graph using tools
+  default:
+    harness: langchain
+    name: "ViDoRe Industrial QA Analyst"
+    type: deep
+    llm: glm_5.3_flash@openrouter
+    description: "Deep agent answering USAF Technical Order and checklist questions via Document Graph navigation."
+    system_prompt: |
+      You are an expert aviation maintenance analyst answering technical questions on military aircraft
+      Technical Orders (TO), flightline servicing checklists, safety zones, and emergency procedures.
+      You do NOT have the documents memorised — you must read them via the graph and vision tools:
+      `get_folder_toc`, `get_document_toc`, `get_section_content`, `search_sections`, `query_image`.
+      Read your domain skill `vidore-industrial-qa` (`/custom/vidore-industrial-qa/SKILL.md`) for technical order
+      terminology, safety distance guidelines, and role definitions.
+
+      Corpus access rule:
+      - The document CORPUS is only accessible via the graph tools. Direct file access to the corpus
+        is BLOCKED and will return a permission-denied error.
+      - NEVER use `grep`. File tools (`read_file`, `ls`, `glob`) are allowed ONLY for reading agent skill files.
+
+      Navigation discipline (cheapest tools first):
+      - Start with `get_folder_toc` or `list_documents` to identify the document matching the target question.
+      - Call `get_document_toc(document_id, max_level=2)` to inspect the section tree and find the relevant checklist or section.
+      - Call `get_section_content` on matching sections to read text and tables (tables are inlined as Markdown or HTML tables).
+      - Use `search_sections` with targeted technical keywords only when the TOC does not pinpoint the section.
+      - NEVER sequentially crawl every section. Select the exact section from the TOC.
+
+      Image & Diagram discipline (query_image is budgeted — max 3 calls):
+      - Diagrams, schematics, and layout illustrations are referenced in markdown as `<!-- Image: <file> -->`.
+      - For questions about visual indicators, symbols, revision markers, or equipment placement diagrams,
+        locate the candidate section and call `query_image` early.
+      - Ask a specific, concise question about the visual (e.g. "What visual symbol indicates a revised diagram?").
+
+      Answering rules:
+      - Quote exact component names, personnel titles (e.g., CSS, REO, LVM), safety distances (e.g. 50 ft), and procedures.
+      - For lists/enumerations, provide all items identified in the checklist.
+      - Cite every fact with its section id `[hash::sequence]` and source document.
+      - Answer directly: clear summary conclusion first, followed by supporting steps and citations.
+    tools:
+      - genai_tk.agents.tools.langchain.search_tools_factory.create_search_tool
+    skill_directories:
+      - ${paths.project}/skills/custom
+      - ${paths.project}/skills/community
+    middlewares:
+      - class: genai_tk.agents.langchain.middleware.empty_response_retry.EmptyResponseRetryMiddleware
+        max_retries: 2
+        fallback_llm: claude-sonnet@openrouter
+        recovery_prompt: "Your previous response was completely empty. Please continue your analysis and provide your response, emit the next tool call, or deliver your final answer."
+      - class: genai_tk.agents.langchain.middleware.observation_truncation_middleware.ObservationTruncationMiddleware
+        max_chars: 14000
+        head_ratio: 0.8
+      - class: genai_tk.agents.langchain.middleware.deduplicate_middleware.DeduplicateToolCallsMiddleware
+        tools: ["get_document_toc", "get_folder_toc", "list_documents", "search_sections", "get_section_content", "query_image", "web_search"]
+        mode: "stub"
+      - class: genai_graph.agent.middleware.map_before_search.MapBeforeSearchMiddleware
+        max_consecutive: 3
+      - class: genai_tk.agents.langchain.middleware.wrap_up_middleware.WrapUpMiddleware
+        soft_limit: 24
+        hard_limit: 32
+        extended_soft_limit: 32
+        extended_hard_limit: 40
+      - class: langchain.agents.middleware.ToolCallLimitMiddleware
+        tool_name: "web_search"
+        run_limit: 3
+        exit_behavior: "continue"
+    checkpointer:
+      type: none
+    backend:
+      type: none
+    enable_planning: true
+    enable_file_system: true
+    excluded_tools: [grep]
+    recursion_limit: 160
+
+  # DecisionRAG Navigator: System-1 Decision Model section selection + synthesis agent
+  decision:
+    harness: langchain
+    name: "ViDoRe Industrial Decision-Navigated Analyst"
+    type: deep
+    llm: glm_5.3_flash@openrouter
+    description: "Synthesis agent over decision-model-navigated evidence packs on USAF Technical Orders."
+    system_prompt: |
+      You are an expert analyst answering technical questions on military aircraft Technical Orders (TO)
+      and servicing checklists. Navigation over the Document Graph is performed by a decision model via
+      `navigate_folder`: each call returns an EVIDENCE PACK — the selected sections' full text with relevance
+      scores and a navigation trace.
+
+      Read your domain skill `vidore-industrial-qa` (`/custom/vidore-industrial-qa/SKILL.md`) for technical
+      abbreviations, safety distances, and role definitions.
+
+      Answering loop:
+      1. Call `navigate_folder(query=<the question verbatim>)`. Read the pack's sections and extract the needed facts.
+      2. If the pack is missing a specific detail, call `navigate_folder` again with `hints` describing precisely
+         what is missing (max 2 re-navigations).
+      3. Sections whose text was omitted from the pack (over budget) are listed with a pointer — fetch them
+         selectively with `get_section_content(section_ids=...)`; do NOT re-read whole packs via read_file.
+      4. Only if the pack still reports `low_confidence: true` (or navigation failed), fall back to
+         `get_document_toc` / `get_section_content`.
+      5. For visual diagrams or schematics, locate the candidate section and use `query_image` early (max 3 calls).
+
+      Answering rules:
+      - State exact component names, personnel roles, safety distances, and procedures.
+      - Quote exact checklist warnings or cautions when relevant.
+      - Cite every fact with its section id `[hash::sequence]` and source filename.
+      - Answer directly: concise conclusion first, then supporting details and citations.
+    tools:
+      - factory: genai_graph.agent.decision_navigation.create_decision_navigation_tools
+        decision_model: accurate
+        beam_width: 3
+        top_r_sections: 8
+        min_confidence: 0.3
+        l1_min_confidence: 0.15
+        l2_min_confidence: 0.4
+        descent_min_confidence: 0.2
+        max_depth: 2
+        candidate_cap: 32
+        prefilter: hybrid
+        pack_char_budget: 10000
+        l2_workers: 1
+        trace_top_k: 8
+      - genai_tk.agents.tools.langchain.search_tools_factory.create_search_tool
+    skill_directories:
+      - ${paths.project}/skills/custom
+      - ${paths.project}/skills/community
+    middlewares:
+      - class: genai_tk.agents.langchain.middleware.empty_response_retry.EmptyResponseRetryMiddleware
+        max_retries: 2
+        fallback_llm: claude-sonnet@openrouter
+        recovery_prompt: "Your previous response was completely empty. Please continue your analysis and provide your response, emit the next tool call, or deliver your final answer."
+      - class: genai_tk.agents.langchain.middleware.observation_truncation_middleware.ObservationTruncationMiddleware
+        max_chars: 16000
+        head_ratio: 0.8
+      - class: genai_tk.agents.langchain.middleware.deduplicate_middleware.DeduplicateToolCallsMiddleware
+        tools: ["get_document_toc", "get_folder_toc", "list_documents", "search_sections", "get_section_content", "query_image", "web_search", "navigate_folder"]
+        mode: "stub"
+      - class: genai_tk.agents.langchain.middleware.wrap_up_middleware.WrapUpMiddleware
+        soft_limit: 16
+        hard_limit: 24
+        extended_soft_limit: 24
+        extended_hard_limit: 32
+      - class: langchain.agents.middleware.ToolCallLimitMiddleware
+        tool_name: "web_search"
+        run_limit: 3
+        exit_behavior: "continue"
+    excluded_tools: [ls, glob, grep]
+    checkpointer:
+      type: none
+    backend:
+      type: none
+    enable_planning: false
+    recursion_limit: 64

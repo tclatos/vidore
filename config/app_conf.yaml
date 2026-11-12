@@ -1,0 +1,89 @@
+# GenAI Toolkit Configuration for ViDoRe v3 Industrial Benchmark
+
+profile: ${oc.env:GENAITK_PROFILE,local}
+
+paths:
+  home: ${oc.env:HOME}
+  project: ${oc.env:PWD}
+  src: ${paths.project}/vidore
+  config: ${paths.project}/config
+  data_root: ${paths.project}/data
+
+nlp:
+  default_language: en
+  default_model: en_core_web_md
+  models:
+    en: en_core_web_md
+    fr: fr_core_news_sm
+
+# Embedded graph engine (Ladybug) settings
+ladybug:
+  buffer_pool_size: ${oc.env:LADYBUG_BUFFER_POOL_SIZE,6GB}
+
+:merge:
+  - "**/*.yaml"
+  - "!examples/**"
+  - "!demos/**"
+  - "!mcp/**"
+
+:profiles:
+  local:
+    llm:
+      models:
+        default: glm_5.3_flash@openrouter
+        fake: parrot_local@fake
+        cheap_model: claude-haiku@openrouter
+        fast_model: deepseek-v4-flash-0731(none)@openrouter
+      cache: sqlite
+      cache_path: data/llm_cache/langchain.db
+    embeddings:
+      models:
+        default: qwen3_06b@deepinfra
+        local: artic_22@ollama
+        fake: embeddings_768@fake
+      cache: data/hf_models
+    vector_store:
+      default: InMemory
+    monitoring:
+      backends: [local]
+      project: vidore_bench
+      local_log:
+        path: ${paths.data_root}/traces/llm_calls.jsonl
+        include_prompts: true
+
+  pytest:
+    llm:
+      models:
+        default: parrot_local@fake
+        fake: parrot_local@fake
+    embeddings:
+      models:
+        default: embeddings_768@fake
+        fake: embeddings_768@fake
+    kv_store:
+      default:
+        type: key_value.aio.stores.memory.MemoryStore
+        args: {}
+    llm_cache:
+      method: memory
+    logging:
+      level: INFO
+
+:env:
+  LOGURU_LEVEL: INFO
+  LANGSMITH_TRACING: "false"
+
+cli:
+  commands:
+    - genai_tk.cli.commands_core.CoreCommands
+    - genai_tk.cli.commands_info.InfoCommands
+    - genai_tk.workflow.commands.WorkflowCommands
+    - genai_tk.workflow.prefect_commands.PrefectCommands
+    - genai_tk.extra.commands_extra.ExtraCommands
+    - vidore.commands.agent_commands.AgentCommands
+    - genai_graph.core.commands_bench.BenchCommands
+    - genai_tk.cli.commands_skills.SkillsCommands
+    - genai_tk.main.cli.register_commands
+    - genai_tk.cli.commands_monitoring.MonitoringCommands
+    - genai_tk.cli.commands_trajectory.TrajectoryCommands
+    - genai_graph.core.commands_docgraph.DocGraphCommands

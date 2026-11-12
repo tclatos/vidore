@@ -31,9 +31,10 @@ ladybug:
     llm:
       models:
         default: glm_5.3_flash@openrouter
+        default_vlm: gemini-3.5-flash-lite@openrouter
         fake: parrot_local@fake
         cheap_model: claude-haiku@openrouter
-        fast_model: deepseek-v4-flash-0731(none)@openrouter
+        fast_model: deepseek-v4.1-flash-1017(none)@openrouter
       cache: sqlite
       cache_path: data/llm_cache/langchain.db
     embeddings:

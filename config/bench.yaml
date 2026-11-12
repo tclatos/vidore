@@ -14,9 +14,18 @@ bench_profiles:
     agent_profile: default
 
     files:
-      pathspecs:
-        - "*"
-      docs: []
+      pathspecs: []
+      docs:
+        - AFD-091005-062
+        - TO_34-1-3
+        - AFD-091005-056
+        - TO_00-25-172CL-1
+        - TO_00-25-260
+        - TO_00-25-245_1
+        - TO_00-25-172CL-3
+        - TO_00-25-203
+        - TO_00-25-172CL-5
+        - TO_00-25-172CL-4
       limit: null
 
     runner:
@@ -35,9 +44,18 @@ bench_profiles:
     agent_profile: decision
 
     files:
-      pathspecs:
-        - "*"
-      docs: []
+      pathspecs: []
+      docs:
+        - AFD-091005-062
+        - TO_34-1-3
+        - AFD-091005-056
+        - TO_00-25-172CL-1
+        - TO_00-25-260
+        - TO_00-25-245_1
+        - TO_00-25-172CL-3
+        - TO_00-25-203
+        - TO_00-25-172CL-5
+        - TO_00-25-172CL-4
       limit: null
 
     runner:

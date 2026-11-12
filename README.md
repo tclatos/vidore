@@ -28,8 +28,25 @@ Evaluated across 13 diverse questions spanning all 10 ingested manuals, graded b
 | **Decision Model Navigation Cost** | $0.00 | **$0.0204** | **~$0.0015 / question** |
 | **Retrieval / Lookup Errors** | 5 | **1** | **-80% retrieval errors** |
 
+## Comprehensive Evaluation Results (105 Questions Across 10 Technical Manuals)
+
+Evaluated across all 105 expert-annotated questions mapped to the 10 ingested manuals in the Ladybug Document Graph, graded by `DeepSeek-V4-Pro-0813`:
+
+| Evaluation Metric | Measured Result (`decision_fast`) | Benchmark Context |
+|---|:---:|---|
+| **Weighted Accuracy** | **77.1% (81/105)** | `correct + 0.5 * partial` under strict equivalence |
+| **Strict Accuracy** | **61.9% (65/105)** | Exact match of all procedural steps & numbers |
+| **Partial Accuracy** | **30.5% (32/105)** | Right document/section, missing secondary detail |
+| **Incorrect Rate** | **7.6% (8/105)** | Outright contradicted or ungrounded claims |
+| **Groundedness Rate** | **92.9% (97/105)** | Citations strictly grounded in technical manual text |
+| **Numeric Match Rate** | **75.8% (25/33)** | Exact match on safety distances, PSI limits, counts |
+| **Average Tool Calls** | **6.77 / turn** | Compact trajectories driven by Decision Model |
+| **System Stability** | **0% failures** | 105/105 questions completed; zero timeouts or loop errors |
+| **Total Decision Model Cost** | **$0.1595** | **~$0.0015 per question** (1,179 System-1 calls) |
+
 Detailed reports:
-- [10-File Multi-Document Benchmark Report](report/10_FILES_BENCHMARK_REPORT.md)
+- [Executive Evaluation Report & Industry Baseline Comparison](report/EXECUTIVE_EVALUATION_REPORT.md)
+- [10-File Multi-Document Diagnostic Report](report/10_FILES_BENCHMARK_REPORT.md)
 - [Initial Pilot Evaluation Report](report/PILOT_REPORT.md)
 
 ## Quick Start

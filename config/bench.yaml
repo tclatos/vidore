@@ -1,5 +1,5 @@
 # ViDoRe v3 Industrial evaluation configuration.
-default_profile: default
+default_profile: decision_fast
 dataset_adapter: vidore.adapter.ViDoReIndustrialAdapter
 
 paths:

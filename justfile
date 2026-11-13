@@ -58,3 +58,10 @@ bench-grade:
 
 bench-report:
     uv run cli bench report
+
+# ── Web Application ──────────────────────────────────────────────────────────
+
+# Launch the interactive Streamlit demonstration webapp
+webapp:
+    uv run streamlit run vidore/ui/streamlit/app.py
+

@@ -73,4 +73,37 @@ uv run cli bench run -d AFD-091005-056,TO_00-25-172CL-1
 
 # View evaluation report
 uv run cli bench report -p decision_fast
+
+# Interactive TUI question browser
+uv run cli bench tui -p decision_fast
+
+# Interactive Streamlit benchmark dashboard
+uv run cli bench web -p decision_fast
 ```
+
+## Web Application & Interactive Exploration
+
+Launch the multi-page Streamlit webapp:
+
+```bash
+just webapp
+# or:
+uv run streamlit run vidore/ui/streamlit/app.py
+```
+
+The webapp provides three dedicated pages:
+1. **Document & PDF Explorer** (`docgraph_explorer.py`):
+   - Interactive outline and section browser over the 10 USAF Technical Orders in `data/kg/vidore.db`.
+   - Single-section focused reading mode with rendered Markdown, resolved embedded images/figures, and tables.
+   - Side-by-side **Split Screen** or **Tabbed** comparison with the original source PDF from `data/pdfs/`.
+2. **Benchmark Outcomes Dashboard** (`bench_outcomes.py`):
+   - Interactive counterpart to `cli bench tui` / `cli bench questions` displaying the 105 evaluated questions.
+   - Top-level KPI metrics (Strict Accuracy, Weighted Accuracy, Groundedness, Tool Calls).
+   - Multi-criteria filtering by verdict (`✓ Correct`, `~ Partial`, `✗ Incorrect`), manual name, and text query.
+   - Detailed side-by-side comparison of gold reference answers, agent responses, LLM judge rationales, and step-by-step tool trajectories & DecisionRAG navigation evidence packs.
+3. **Industrial QA Assistant** (`chat_assistant.py`):
+   - Interactive chat powered by the `decision` DecisionRAG Navigator.
+   - Dynamic model switching via the sidebar LLM selector (`llm_selector_widget`).
+   - One-click benchmark sample questions.
+   - Live two-panel workbench displaying real-time execution traces (decision model steps, tool calls) alongside streaming answers with manual citations.
+

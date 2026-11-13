@@ -83,8 +83,24 @@ cli:
     - genai_tk.extra.commands_extra.ExtraCommands
     - vidore.commands.agent_commands.AgentCommands
     - genai_graph.core.commands_bench.BenchCommands
+    - genai_graph.core.commands_docbench.DocBenchCommands
     - genai_tk.cli.commands_skills.SkillsCommands
     - genai_tk.main.cli.register_commands
     - genai_tk.cli.commands_monitoring.MonitoringCommands
     - genai_tk.cli.commands_trajectory.TrajectoryCommands
     - genai_graph.core.commands_docgraph.DocGraphCommands
+
+ui:
+  app_name: ViDoRe Industrial QA & Benchmark
+  pages_dir: ${paths.src}/ui/streamlit/pages
+  navigation:
+    "Corpus & Graph":
+      - path: docgraph_explorer.py
+        title: "📄 Document & PDF Explorer"
+    "Benchmark Evaluation":
+      - path: bench_outcomes.py
+        title: "📊 Benchmark Outcomes"
+    "Interactive Assistant":
+      - path: chat_assistant.py
+        title: "💬 Industrial QA Chat"
+

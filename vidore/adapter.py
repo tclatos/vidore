@@ -16,6 +16,29 @@ from loguru import logger
 
 DATASET_ID = "vidore/vidore_v3_industrial"
 
+# Corrections to provably-wrong gold answers in the upstream HF dataset, verified verbatim against
+# data/markdown_multi/ (see report/AGENT_TRAJECTORY_ANALYSIS.md §3B).
+GOLD_ANSWER_OVERRIDES: dict[str, str] = {
+    # TO 00-25-172CL-3 line 160 lists "Fire Extinguisher, 150 pound Halon, or Equivalent" in its
+    # support-equipment list, so the original gold claim "Halon extinguishers are not mentioned" is wrong.
+    "vidore_ind_207": (
+        "Yes—TO 00-25-172CL-3 prioritizes fire prevention through engine shutdowns, fire guards, and other "
+        "safety procedures during hot refueling operations, and it explicitly lists a 150-pound Halon "
+        "(or equivalent) fire extinguisher among the required support equipment, consistent with USAF "
+        "technical manuals and orders."
+    ),
+    # "Crew Station Supervisor" appears nowhere in the corpus; the abbreviation lists expand CSS as
+    # "Chief Servicing Supervisor" (CL-1) / "Concurrent Servicing Supervisor" (other checklists).
+    "vidore_ind_197": (
+        "The CSS — expanded as Chief Servicing Supervisor in TO 00-25-172CL-1 and Concurrent Servicing "
+        "Supervisor in other checklists (the title 'Crew Station Supervisor' is not used in the corpus) — "
+        "has full and final authority over all phases of concurrent servicing and the personnel involved, "
+        "with the exception of firefighting and rescue units. The CSS coordinates pre-operational planning, "
+        "assesses aircraft status and servicing requirements, and oversees aircraft parking, chocking, and "
+        "grounding or bonding procedures. The CSS also informs the refueling team that fuel transfer is to begin."
+    ),
+}
+
 VIDORE_INDUSTRIAL_RUBRIC = """\
 You are a strict-but-fair grader for ViDoRe v3 Industrial, evaluating technical understanding of military aircraft technical orders (TO), servicing checklists, safety zones, and mechanical operations.
 Compare the agent's answer to the gold answer using the gold evidence and justification.
@@ -40,6 +63,11 @@ Evaluation criteria:
   it is CORRECT as long as it does not contradict the gold answer or introduce false claims.
 - Anti-hallucination / Unanswerable: If the gold answer states information is not specified in the document,
   the agent is CORRECT if it concludes the information is absent.
+
+- Verbatim-quote rule: If the agent cites verbatim quoted manual text that directly contradicts a claim in the
+  gold answer about what the document does or does not say (e.g. gold claims "X is not mentioned" while the
+  agent quotes a passage mentioning X), do NOT rule incorrect for that point: treat the agent's quoted
+  evidence as valid unless it is clearly fabricated, and grade on technical substance.
 
 Tiers:
 - "correct": The agent answer accurately captures all substantive facts, safety constraints, components, or procedures.
@@ -162,7 +190,7 @@ class ViDoReIndustrialAdapter(BaseBenchmarkAdapter):
 
             primary_doc = doc_names[0]
             question_text = str(row.get("query", ""))
-            gold_answer = str(row.get("answer", ""))
+            gold_answer = GOLD_ANSWER_OVERRIDES.get(q_id, str(row.get("answer", "")))
 
             raw_pages = _to_python_type(row.get("page_number_in_doc")) or []
             pages = raw_pages if isinstance(raw_pages, list) else [raw_pages]

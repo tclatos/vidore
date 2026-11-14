@@ -26,6 +26,7 @@ bench_profiles:
         - TO_00-25-203
         - TO_00-25-172CL-5
         - TO_00-25-172CL-4
+        - AFD-100607-009
       limit: null
 
     runner:
@@ -56,6 +57,7 @@ bench_profiles:
         - TO_00-25-203
         - TO_00-25-172CL-5
         - TO_00-25-172CL-4
+        - AFD-100607-009
       limit: null
 
     runner:

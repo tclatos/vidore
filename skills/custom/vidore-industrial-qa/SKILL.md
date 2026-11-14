@@ -23,7 +23,11 @@ This skill guides agents answering technical questions across military technical
      - Miniature pointing hands indicate visual updates to diagrams.
 
 2. **Key Operational Personnel**:
-   - **CSS**: Concurrent Servicing Supervisor (responsible for overall concurrent operations, safety, acts as RVM).
+   - **CSS**: **Chief Servicing Supervisor** in `TO 00-25-172CL-1`'s abbreviation list;
+     **Concurrent Servicing Supervisor** in other checklists (e.g. `CL-5`). Expansion varies by
+     checklist — always quote the expansion from the specific TO being cited. The title
+     **"Crew Station Supervisor" is NOT a corpus term**; treat it as a paraphrase of CSS, not a
+     distinct role.
    - **REO**: Refueling Equipment Operator (operates refueling vehicle/pumps, monitors pressure and emergency shutdown).
    - **LVM**: Liquid/Vent Monitor or Line Valve Monitor.
    - **SCR**: Servicing Control Representative.

@@ -93,19 +93,34 @@ agents:
 
       Answering loop:
       1. Call `navigate_folder(query=<the question verbatim>)`. Read the pack's sections and extract the needed facts.
-      2. If the pack is missing a specific detail, call `navigate_folder` again with `hints` describing precisely
-         what is missing (max 2 re-navigations).
+      2. Re-navigation is expected, not exceptional: most packs omit sections (they arrive as pointers).
+         If the question has multiple sub-parts, or any required fact, step, or number is still missing after
+         reading the pack, call `navigate_folder` again with `hints` naming the EXACT missing items
+         (e.g. "hints: 15 PSI differential pressure shutdown threshold; stow hydrant coupler after shutdown")
+         (max 2 re-navigations).
       3. Sections whose text was omitted from the pack (over budget) are listed with a pointer — fetch them
          selectively with `get_section_content(section_ids=...)`; do NOT re-read whole packs via read_file.
-      4. Only if the pack still reports `low_confidence: true` (or navigation failed), fall back to
+      4. If the pack reports `low_confidence: true` (or navigation failed), fall back to
          `get_document_toc` / `get_section_content`.
-      5. For visual diagrams or schematics, locate the candidate section and use `query_image` early (max 3 calls).
+      5. If a section contains `<!-- Image: ... -->` and the question concerns tolerances, classifications,
+         hand signals, symbols, charts, or equipment placement shown in a figure or table image, call
+         `query_image` on that image BEFORE answering (max 3 calls).
 
       Answering rules:
       - State exact component names, personnel roles, safety distances, and procedures.
       - Quote exact checklist warnings or cautions when relevant.
       - Cite every fact with its section id `[hash::sequence]` and source filename.
       - Answer directly: concise conclusion first, then supporting details and citations.
+      - COMPLETENESS (critical for list/enumeration/procedure questions): transcribe ALL checklist steps,
+        items, and thresholds VERBATIM and exhaustively — never consolidate two checklist steps into one
+        clause, never summarize a list down to its highlights. Before answering, re-scan the evidence and
+        append anything missed.
+      - NUMERIC SWEEP: before answering, scan the evidence for every numeral near a unit (PSI, GPM, ft, min,
+        inches, microns, lb, times/day) and verify each appears in your answer with its exact value and
+        context.
+      - ABSTENTION: if a sub-question or one side of a comparison is not covered in the corpus, answer the
+        covered parts and state explicitly "the manual does not specify X" — do NOT infer the missing side,
+        and do not claim a requirement exists (or does not exist) without a verbatim quote.
     tools:
       - factory: genai_graph.agent.decision_navigation.create_decision_navigation_tools
         decision_model: accurate
@@ -118,7 +133,7 @@ agents:
         max_depth: 2
         candidate_cap: 48
         prefilter: hybrid
-        pack_char_budget: 10000
+        pack_char_budget: 18000
         l2_workers: 1
         trace_top_k: 12
         domain_context_file: ${paths.project}/skills/custom/vidore-industrial-qa/decision-routing.md

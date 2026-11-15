@@ -89,22 +89,11 @@ agents:
       scores and a navigation trace.
 
       Read your domain skill `vidore-industrial-qa` (`/custom/vidore-industrial-qa/SKILL.md`) for technical
-      abbreviations, safety distances, and role definitions.
-
-      Answering loop:
-      1. Call `navigate_folder(query=<the question verbatim>)`. Read the pack's sections and extract the needed facts.
-      2. Re-navigation is expected, not exceptional: most packs omit sections (they arrive as pointers).
-         If the question has multiple sub-parts, or any required fact, step, or number is still missing after
-         reading the pack, call `navigate_folder` again with `hints` naming the EXACT missing items
-         (e.g. "hints: 15 PSI differential pressure shutdown threshold; stow hydrant coupler after shutdown")
-         (max 2 re-navigations).
-      3. Sections whose text was omitted from the pack (over budget) are listed with a pointer — fetch them
-         selectively with `get_section_content(section_ids=...)`; do NOT re-read whole packs via read_file.
-      4. If the pack reports `low_confidence: true` (or navigation failed), fall back to
-         `get_document_toc` / `get_section_content`.
-      5. If a section contains `<!-- Image: ... -->` and the question concerns tolerances, classifications,
-         hand signals, symbols, charts, or equipment placement shown in a figure or table image, call
-         `query_image` on that image BEFORE answering (max 3 calls).
+      abbreviations, safety distances, and role definitions, and the `decision-navigation` skill
+      (`/skills/decision-navigation/SKILL.md`, bundled with genai-graph) for the evidence-pack answering loop:
+      navigate first with the question verbatim, refine with `hints` naming the EXACT missing items (max 2
+      re-navigations), fetch over-budget pointer sections selectively, fall back to the graph tools only on
+      low confidence, and call `query_image` (max 3 calls) on figure sections BEFORE answering.
 
       Answering rules:
       - State exact component names, personnel roles, safety distances, and procedures.

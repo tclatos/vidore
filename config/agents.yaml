@@ -44,6 +44,9 @@ agents:
     skill_directories:
       - ${paths.project}/skills/custom
       - ${paths.project}/skills/community
+      # Bundled runtime skills (document-graph-tools, ...), resolved from the
+      # installed genai_graph package.
+      - package:genai_graph/agent/skills
     middlewares:
       - class: genai_tk.agents.langchain.middleware.empty_response_retry.EmptyResponseRetryMiddleware
         max_retries: 2
@@ -130,6 +133,10 @@ agents:
     skill_directories:
       - ${paths.project}/skills/custom
       - ${paths.project}/skills/community
+      # Bundled runtime skills (decision-navigation, document-graph-tools),
+      # resolved from the installed genai_graph package — keeps the discipline
+      # in sync with the library on every entry point, not just bench runs.
+      - package:genai_graph/agent/skills
     middlewares:
       - class: genai_tk.agents.langchain.middleware.empty_response_retry.EmptyResponseRetryMiddleware
         max_retries: 2
